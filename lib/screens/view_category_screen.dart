@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:todos_app/models/category.dart';
+import 'package:todos_app/providers/todos.dart';
 import 'package:todos_app/screens/add_todo_screen.dart';
 import 'package:todos_app/widget/todos.dart';
+import 'package:todos_app/models/http_exeption.dart';
+import 'package:todos_app/helpers/helper.dart';
 
 class ViewCategotyScreen extends StatelessWidget {
   const ViewCategotyScreen({Key? key}) : super(key: key);
   static const routeName = '/view-category';
 
+
   @override
   Widget build(BuildContext context) {
+    final category = ModalRoute.of(context)!.settings.arguments as Category;
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size(0, 96),
@@ -30,7 +37,23 @@ class ViewCategotyScreen extends StatelessWidget {
             ),
             actions: [
               IconButton(
-                  onPressed: () {},
+                  onPressed: () async {
+                    final isOnline = await Helper.hasNetwork();
+                    if (isOnline) {
+                      try {
+                        Helper.showLoadingDialog(context);
+                        await Provider.of<Todoss>(context, listen: false)
+                            .removeCategory(category.id);
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop();
+                      } on HttpException catch (error) {
+                        Navigator.of(context).pop();
+                        Helper.showErrorDialog(context, error.toString());
+                      }
+                    } else {
+                      Helper.showErrorDialog(context, "Connect to internet");
+                    }
+                  },
                   icon: const Icon(
                     Icons.delete,
                     size: 35,
@@ -40,52 +63,58 @@ class ViewCategotyScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: Column(
-        children: [
-          const SizedBox(
-            height: 70,
-          ),
-          Container(
-            margin: const EdgeInsets.only(left: 35),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: const [
-                    Icon(
-                      Icons.circle_outlined,
-                      size: 35,
-                      color: Colors.orange,
-                    ),
-                    SizedBox(
-                      width: 9,
-                    ),
-                    Text("Home")
-                  ],
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                const Padding(
-                  padding: EdgeInsets.only(left: 45),
-                  child: Text("0 task"),
-                ),
-              ],
+      body: Consumer<Todoss>(
+        builder: (ctx, todo, _) => Column(
+          children: [
+            const SizedBox(
+              height: 70,
             ),
-          ),
-          const Divider(
-            thickness: 1,
-          ),
-          const Expanded(child: Todos())
-        ],
+            Container(
+              margin: const EdgeInsets.only(left: 35),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.circle_outlined,
+                        size: 35,
+                        color: Colors.primaries[category.colorNumber],
+                      ),
+                      const SizedBox(
+                        width: 9,
+                      ),
+                      Text(category.title)
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 45),
+                    child: Text("${category.todos.length} task"),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(
+              thickness: 1,
+            ),
+            Expanded(
+                child: Todos(
+              todos: category.todos,
+              catId: category.id,
+            ))
+          ],
+        ),
       ),
       floatingActionButton: SizedBox(
         height: 75,
         child: FloatingActionButton(
           shape: BeveledRectangleBorder(borderRadius: BorderRadius.circular(5)),
-          backgroundColor: Colors.orange,
           onPressed: () {
-            Navigator.of(context).pushNamed(AddTodoScreen.routeName);
+            Navigator.of(context)
+                .pushNamed(AddTodoScreen.routeName, arguments: category.id);
           },
           child: const Icon(
             Icons.add,

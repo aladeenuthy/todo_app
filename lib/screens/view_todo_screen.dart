@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:todos_app/providers/todos.dart';
+import 'package:todos_app/models/http_exeption.dart';
+import 'package:todos_app/helpers/helper.dart';
 
 class ViewTodoScreen extends StatelessWidget {
   const ViewTodoScreen({Key? key}) : super(key: key);
@@ -6,6 +10,8 @@ class ViewTodoScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final todoData =
+        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size(0, 96),
@@ -28,7 +34,27 @@ class ViewTodoScreen extends StatelessWidget {
             ),
             actions: [
               IconButton(
-                  onPressed: () {},
+                  onPressed: () async {
+                    final isOnline = await Helper.hasNetwork();
+                    if (isOnline) {
+                      try {
+                        Helper.showLoadingDialog(context);
+                        await Provider.of<Todoss>(context, listen: false)
+                            .removeTodo(todoData["catId"], todoData['todo'].id);
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("todo removed")));
+                      } on HttpException catch (_) {
+                        Navigator.of(context).pop();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text("could not remove todo")));
+                      }
+                    } else {
+                      Helper.showErrorDialog(context, "connect to internet");
+                    }
+                  },
                   icon: const Icon(
                     Icons.delete,
                     size: 35,
@@ -50,7 +76,7 @@ class ViewTodoScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "home",
+                  todoData['todo'].title,
                   style: Theme.of(context).textTheme.headline6,
                 ),
                 const Divider(
@@ -60,16 +86,25 @@ class ViewTodoScreen extends StatelessWidget {
                   height: 20,
                 ),
                 Text(
-                  "this is a test thsis is kjf sjdfj jsdfo kfjajj  jfjaij",
+                  todoData['todo'].description,
                   style: Theme.of(context).textTheme.bodyText2,
                   softWrap: true,
                 ),
                 const SizedBox(height: 15),
-                Switch(
-                  value: true,
-                  onChanged: (value) {},
-                  activeColor: Colors.orange,
-                )
+                Consumer<Todoss>(
+                  builder: (ctx, todosObj, _) => Switch(
+                    value: todoData['todo'].completed,
+                    onChanged: (value) async {
+                      try {
+                        await todosObj.toggleCompleted(
+                            todoData["catId"], todoData['todo'].id);
+                      } catch (error) {
+                        Helper.showErrorDialog(context, "connect to internet");
+                      }
+                    },
+                    activeColor: Colors.green,
+                  ),
+                ),
               ],
             ),
           ),

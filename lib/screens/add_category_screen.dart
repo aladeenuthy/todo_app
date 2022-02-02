@@ -1,10 +1,23 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:todos_app/models/http_exeption.dart';
+import 'package:todos_app/models/todo_error.dart';
+import 'package:todos_app/providers/todos.dart';
+import 'package:todos_app/helpers/helper.dart';
 
-class AddCategoryScreen extends StatelessWidget {
-  AddCategoryScreen({Key? key}) : super(key: key);
+class AddCategoryScreen extends StatefulWidget {
+  const AddCategoryScreen({Key? key}) : super(key: key);
   static const routeName = "/add-category";
 
+  @override
+  State<AddCategoryScreen> createState() => _AddCategoryScreenState();
+}
+
+class _AddCategoryScreenState extends State<AddCategoryScreen> {
   final _categorNameController = TextEditingController();
+  var _isLoading = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,13 +41,49 @@ class AddCategoryScreen extends StatelessWidget {
               ),
             ),
             actions: [
-              IconButton(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.check,
-                    size: 40,
-                    color: Colors.grey,
-                  ))
+              _isLoading
+                  ? Transform.scale(
+                      scale: 0.6,
+                      child: const SizedBox(
+                        child: CircularProgressIndicator(
+                          color: Colors.grey,
+                          strokeWidth: 4.0,
+                        ),
+                        width: 50,
+                      ),
+                    )
+                  : IconButton(
+                      onPressed: () async {
+                        if (_categorNameController.text.isEmpty) {
+                          return;
+                        }
+                        final isOnline = await Helper.hasNetwork();
+                        if (isOnline) {
+                          setState(() {
+                            _isLoading = true;
+                          });
+                          try {
+                            await Provider.of<Todoss>(context, listen: false)
+                                .addCategory(_categorNameController.text,
+                                    Random().nextInt(Colors.primaries.length));
+                            Navigator.of(context).pop();
+                          } on TodoException catch (error) {
+                            Helper.showErrorDialog(context, error.toString());
+                          } on HttpException catch (error) {
+                            Helper.showErrorDialog(context, error.toString());
+                          }
+                          setState(() {
+                            _isLoading = false;
+                          });
+                        } else {
+                          Helper.showErrorDialog(context,"No internet connection");
+                        }
+                      },
+                      icon: const Icon(
+                        Icons.check,
+                        size: 40,
+                        color: Colors.grey,
+                      ))
             ],
           ),
         ),

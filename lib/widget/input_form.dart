@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
+
 class InputForm extends StatefulWidget {
-  const InputForm({ Key? key }) : super(key: key);
+  final TextEditingController titleController;
+  final TextEditingController descriptionController;
+  final Function saveStartTime;
+  const InputForm(
+      {Key? key,
+      required this.titleController,
+      required this.descriptionController,
+      required this.saveStartTime})
+      : super(key: key);
 
   @override
   State<InputForm> createState() => _InputFormState();
 }
 
 class _InputFormState extends State<InputForm> {
-  final _titleController = TextEditingController();
-  final _descriptionController = TextEditingController();
   TimeOfDay? _pickedTime;
   @override
   Widget build(BuildContext context) {
@@ -43,7 +50,7 @@ class _InputFormState extends State<InputForm> {
                           fontSize: 22,
                           color: Colors.grey,
                           fontWeight: FontWeight.bold)),
-                  controller: _titleController,
+                  controller: widget.titleController,
                 ),
               ),
             ],
@@ -63,7 +70,7 @@ class _InputFormState extends State<InputForm> {
                   fontSize: 19,
                   color: Colors.grey,
                 )),
-            controller: _descriptionController,
+            controller: widget.descriptionController,
           ),
           const SizedBox(
             height: 25,
@@ -83,6 +90,7 @@ class _InputFormState extends State<InputForm> {
                           setState(() {
                             _pickedTime = value;
                           });
+                          widget.saveStartTime(value);
                         }
                       });
                     },
