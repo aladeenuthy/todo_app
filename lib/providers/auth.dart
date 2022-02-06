@@ -42,7 +42,7 @@ class Auth with ChangeNotifier {
       String email, String password, String urlSegment) async {
     try {
       final url =
-          "https://identitytoolkit.googleapis.com/v1/accounts:$urlSegment?key=AIzaSyCPrNthHBw4F_a4RoIfl-08sw1X5ooVnXc";
+          "https://identitytoolkit.googleapis.com/v1/accounts:$urlSegment?key=webKey";
       final response = await http.post(Uri.parse(url),
           body: json.encode({
             "email": email,
@@ -92,7 +92,7 @@ class Auth with ChangeNotifier {
   }
   Future<void> refreshSession() async {
     const url =
-        'https://securetoken.googleapis.com/v1/token?key=AIzaSyCPrNthHBw4F_a4RoIfl-08sw1X5ooVnXc';
+        'https://securetoken.googleapis.com/v1/token?key=webKey';
     try {
       final response = await http.post(
         Uri.parse(url),
