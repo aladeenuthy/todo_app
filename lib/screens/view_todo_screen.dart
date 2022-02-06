@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:todos_app/providers/todos.dart';
-import 'package:todos_app/models/http_exeption.dart';
-import 'package:todos_app/helpers/helper.dart';
+import '/providers/auth.dart';
+import '/providers/todos.dart';
+import '/models/http_exeption.dart';
+import '/helpers/helper.dart';
 
 class ViewTodoScreen extends StatelessWidget {
   const ViewTodoScreen({Key? key}) : super(key: key);
@@ -12,11 +13,12 @@ class ViewTodoScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final todoData =
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+        final mediaQuery = MediaQuery.of(context);
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size(0, 96),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
           child: AppBar(
             elevation: 0,
             backgroundColor: Colors.white,
@@ -39,8 +41,11 @@ class ViewTodoScreen extends StatelessWidget {
                     if (isOnline) {
                       try {
                         Helper.showLoadingDialog(context);
+                        final authToken =
+                            await Provider.of<Auth>(context, listen: false)
+                                .getOrRefreshToken();
                         await Provider.of<Todoss>(context, listen: false)
-                            .removeTodo(todoData["catId"], todoData['todo'].id);
+                            .removeTodo(todoData["catId"], todoData['todo'].id, authToken);
                         Navigator.of(context).pop();
                         Navigator.of(context).pop();
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -67,8 +72,8 @@ class ViewTodoScreen extends StatelessWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(
-            height: 30,
+          SizedBox(
+            height: mediaQuery.size.height * 0.05,
           ),
           Container(
             margin: const EdgeInsets.only(left: 35),
@@ -92,12 +97,15 @@ class ViewTodoScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 15),
                 Consumer<Todoss>(
-                  builder: (ctx, todosObj, _) => Switch(
+                  builder: (ctx, todosObj, _) => Switch.adaptive(
                     value: todoData['todo'].completed,
                     onChanged: (value) async {
                       try {
+                        final authToken =
+                            await Provider.of<Auth>(context, listen: false)
+                                .getOrRefreshToken();
                         await todosObj.toggleCompleted(
-                            todoData["catId"], todoData['todo'].id);
+                            todoData["catId"], todoData['todo'].id, authToken);
                       } catch (error) {
                         Helper.showErrorDialog(context, "connect to internet");
                       }

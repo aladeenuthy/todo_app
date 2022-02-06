@@ -16,7 +16,7 @@ class CreateGrid extends StatelessWidget {
                 color: Colors.grey.withOpacity(0.19),
                 spreadRadius: 5,
                 blurRadius: 4,
-                offset: const Offset(0, 3))
+                offset: const Offset(3, 3))
           ],
           borderRadius: BorderRadius.circular(15)),
       padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
@@ -25,11 +25,11 @@ class CreateGrid extends StatelessWidget {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            children: const [
+            children:[
               Icon(
                 Icons.add,
                 size: 35,
-                color: Colors.indigo,
+                color: Theme.of(context).colorScheme.secondary,
               )
             ],
           ),

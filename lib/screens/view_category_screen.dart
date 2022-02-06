@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:todos_app/models/category.dart';
-import 'package:todos_app/providers/todos.dart';
-import 'package:todos_app/screens/add_todo_screen.dart';
-import 'package:todos_app/widget/todos.dart';
-import 'package:todos_app/models/http_exeption.dart';
-import 'package:todos_app/helpers/helper.dart';
+import '/models/category.dart';
+import '/providers/auth.dart';
+import '/providers/todos.dart';
+import '/screens/add_todo_screen.dart';
+import '/widget/todos.dart';
+import '/models/http_exeption.dart';
+import '/helpers/helper.dart';
 
 class ViewCategotyScreen extends StatelessWidget {
   const ViewCategotyScreen({Key? key}) : super(key: key);
@@ -15,11 +16,12 @@ class ViewCategotyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final category = ModalRoute.of(context)!.settings.arguments as Category;
+    final mediaQuery = MediaQuery.of(context);
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size(0, 96),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
           child: AppBar(
             elevation: 0,
             backgroundColor: Colors.white,
@@ -42,8 +44,11 @@ class ViewCategotyScreen extends StatelessWidget {
                     if (isOnline) {
                       try {
                         Helper.showLoadingDialog(context);
+                        final authToken =
+                            await Provider.of<Auth>(context, listen: false)
+                                .getOrRefreshToken();
                         await Provider.of<Todoss>(context, listen: false)
-                            .removeCategory(category.id);
+                            .removeCategory(category.id, authToken);
                         Navigator.of(context).pop();
                         Navigator.of(context).pop();
                       } on HttpException catch (error) {
@@ -66,8 +71,8 @@ class ViewCategotyScreen extends StatelessWidget {
       body: Consumer<Todoss>(
         builder: (ctx, todo, _) => Column(
           children: [
-            const SizedBox(
-              height: 70,
+            SizedBox(
+              height: mediaQuery.size.height * 0.09,
             ),
             Container(
               margin: const EdgeInsets.only(left: 35),
@@ -84,7 +89,7 @@ class ViewCategotyScreen extends StatelessWidget {
                       const SizedBox(
                         width: 9,
                       ),
-                      Text(category.title)
+                      Text(category.title, style:Theme.of(context).textTheme.headline6)
                     ],
                   ),
                   const SizedBox(
@@ -111,10 +116,11 @@ class ViewCategotyScreen extends StatelessWidget {
       floatingActionButton: SizedBox(
         height: 75,
         child: FloatingActionButton(
+          backgroundColor: Colors.primaries[category.colorNumber] ,
           shape: BeveledRectangleBorder(borderRadius: BorderRadius.circular(5)),
           onPressed: () {
             Navigator.of(context)
-                .pushNamed(AddTodoScreen.routeName, arguments: category.id);
+                .pushNamed(AddTodoScreen.routeName, arguments: {'catId':category.id, 'catColor': category.colorNumber});
           },
           child: const Icon(
             Icons.add,

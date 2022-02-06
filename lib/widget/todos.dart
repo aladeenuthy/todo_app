@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:todos_app/models/todo.dart';
-import 'package:todos_app/providers/todos.dart';
-import 'package:todos_app/screens/view_todo_screen.dart';
-import 'package:todos_app/helpers/helper.dart';
-import 'package:todos_app/models/http_exeption.dart';
+import '/models/todo.dart';
+import '/providers/auth.dart';
+import '/providers/todos.dart';
+import '/screens/view_todo_screen.dart';
+import '/helpers/helper.dart';
+import '/models/http_exeption.dart';
 
 class Todos extends StatelessWidget {
   final List<Todo> todos;
@@ -22,8 +23,10 @@ class Todos extends StatelessWidget {
           if (isOnline) {
             try {
               Helper.showLoadingDialog(context);
+              final authToken = await Provider.of<Auth>(context, listen: false)
+                  .getOrRefreshToken();
               await Provider.of<Todoss>(context, listen: false)
-                  .removeTodo(catId, todos[i].id);
+                  .removeTodo(catId, todos[i].id, authToken);
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context)
                   .showSnackBar(const SnackBar(content: Text("todo removed")));
@@ -50,9 +53,16 @@ class Todos extends StatelessWidget {
         direction: DismissDirection.endToStart,
         key: UniqueKey(),
         child: ListTile(
-          leading: IconButton(
-              onPressed: () {}, icon: const Icon(Icons.minimize_outlined)),
-          title: Text(todos[i].title),
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: Icon(
+              todos[i].completed ? Icons.check : Icons.minimize_outlined
+            ),
+          ),
+          title: Padding(
+            padding: const EdgeInsets.only(top: 9),
+            child: Text(todos[i].title),
+          ),
           onTap: () {
             Navigator.of(context).pushNamed(ViewTodoScreen.routeName,
                 arguments: {"todo": todos[i], "catId": catId});

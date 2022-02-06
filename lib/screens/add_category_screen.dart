@@ -1,10 +1,11 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:todos_app/models/http_exeption.dart';
-import 'package:todos_app/models/todo_error.dart';
-import 'package:todos_app/providers/todos.dart';
-import 'package:todos_app/helpers/helper.dart';
+import '/models/http_exeption.dart';
+import '/models/todo_error.dart';
+import '/providers/auth.dart';
+import '/providers/todos.dart';
+import '/helpers/helper.dart';
 
 class AddCategoryScreen extends StatefulWidget {
   const AddCategoryScreen({Key? key}) : super(key: key);
@@ -24,7 +25,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
       appBar: PreferredSize(
         preferredSize: const Size(0, 96),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
           child: AppBar(
             elevation: 0,
             backgroundColor: Colors.white,
@@ -57,15 +58,19 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
                         if (_categorNameController.text.isEmpty) {
                           return;
                         }
+
                         final isOnline = await Helper.hasNetwork();
                         if (isOnline) {
                           setState(() {
                             _isLoading = true;
                           });
                           try {
+                            final authToken =
+                                await Provider.of<Auth>(context, listen: false)
+                                    .getOrRefreshToken();
                             await Provider.of<Todoss>(context, listen: false)
                                 .addCategory(_categorNameController.text,
-                                    Random().nextInt(Colors.primaries.length));
+                                    Random().nextInt(Colors.primaries.length), authToken);
                             Navigator.of(context).pop();
                           } on TodoException catch (error) {
                             Helper.showErrorDialog(context, error.toString());
@@ -76,7 +81,8 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
                             _isLoading = false;
                           });
                         } else {
-                          Helper.showErrorDialog(context,"No internet connection");
+                          Helper.showErrorDialog(
+                              context, "No internet connection");
                         }
                       },
                       icon: const Icon(
@@ -96,12 +102,12 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
           style: const TextStyle(
               fontSize: 29, color: Colors.black, fontWeight: FontWeight.bold),
           decoration: const InputDecoration(
-              border: InputBorder.none,
               hintText: 'Category Name',
               hintStyle: TextStyle(
                   fontSize: 29,
                   color: Colors.grey,
-                  fontWeight: FontWeight.bold)),
+                  fontWeight: FontWeight.bold)
+                  ),
           controller: _categorNameController,
         ),
       ),

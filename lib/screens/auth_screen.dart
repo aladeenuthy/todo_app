@@ -39,6 +39,7 @@ class _AuthScreenState extends State<AuthScreen>
       bool obscure = false]) {
     return Container(
       padding: const EdgeInsets.only(left: 10, bottom: 8, top: 8),
+      constraints: const BoxConstraints(minHeight: 50),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
         color: const Color.fromRGBO(78, 77, 157, 1.0),
@@ -52,16 +53,7 @@ class _AuthScreenState extends State<AuthScreen>
         cursorHeight: 25,
         cursorColor: Colors.white,
         decoration: InputDecoration(
-            errorStyle: const TextStyle(
-                fontSize: 16, color: Color.fromRGBO(2, 218, 255, 1)),
             hintText: hintText,
-            isDense: true,
-            hintStyle: const TextStyle(
-              fontSize: 19,
-              color: Colors.white,
-            ),
-            contentPadding: const EdgeInsets.symmetric(vertical: 10),
-            border: InputBorder.none,
             icon: Icon(iconType, color: Colors.white)),
         onSaved: (value) {
           _authData[hintText] = value!;
@@ -72,7 +64,9 @@ class _AuthScreenState extends State<AuthScreen>
 
   Widget _buildConfirmPassword() {
     return AnimatedContainer(
-      height: _authMode == AuthMode.login ? 0 : 80, //rectify this
+      constraints: BoxConstraints(
+          minHeight: _authMode == AuthMode.signup ? 60 : 0,
+          maxHeight: _authMode == AuthMode.signup ? 80 : 0),
       duration: const Duration(milliseconds: 700),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       decoration: BoxDecoration(
@@ -89,16 +83,7 @@ class _AuthScreenState extends State<AuthScreen>
           cursorHeight: 25,
           cursorColor: Colors.white,
           decoration: const InputDecoration(
-              errorStyle: TextStyle(
-                  fontSize: 16, color: Color.fromRGBO(2, 218, 255, 1)),
               hintText: "Confirm password",
-              isDense: true,
-              hintStyle: TextStyle(
-                fontSize: 19,
-                color: Colors.white,
-              ),
-              contentPadding: EdgeInsets.symmetric(vertical: 10),
-              border: InputBorder.none,
               icon: Icon(Icons.lock, color: Colors.white)),
           validator: _authMode == AuthMode.signup
               ? (value) {
@@ -143,16 +128,17 @@ class _AuthScreenState extends State<AuthScreen>
               ],
             ));
   }
+
   Future<void> _authenticate() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
     _formKey.currentState!.save();
-    
+
     setState(() {
-        isLoading = true;
-      });
-      final isOnline = await Helper.hasNetwork();
+      isLoading = true;
+    });
+    final isOnline = await Helper.hasNetwork();
     if (isOnline) {
       try {
         if (_authMode == AuthMode.login) {
@@ -192,6 +178,7 @@ class _AuthScreenState extends State<AuthScreen>
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -200,35 +187,25 @@ class _AuthScreenState extends State<AuthScreen>
             width: double.infinity,
             child: Column(
               children: [
-                const SizedBox(
-                  height: 40,
+                SizedBox(
+                  height: mediaQuery.size.height * 0.05,
                 ),
                 Text(
                   _switch,
-                  style: const TextStyle(
-                      fontSize: 30,
-                      color: Color.fromRGBO(78, 77, 157, 1.0),
-                      fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                const Text("to resume your todo journey",
-                    style: TextStyle(
-                        fontSize: 18, color: Color.fromRGBO(78, 77, 157, 1.0))),
-                const SizedBox(
-                  height: 30,
+                  style: Theme.of(context).textTheme.headline5!.copyWith(color: const Color.fromRGBO(78, 77, 157, 1.0))),
+                SizedBox(
+                  height: mediaQuery.size.height * 0.03,
                 ),
                 SizedBox(
-                  width: double.infinity,
-                  height: 275,
+                  width: mediaQuery.size.width * 0.5 ,
+                  height: mediaQuery.size.height * 0.42,
                   child: Image.asset(
                     "assets/images/login.jpg",
                     fit: BoxFit.cover,
                   ),
                 ),
-                const SizedBox(
-                  height: 20,
+                SizedBox(
+                  height: mediaQuery.size.height  * 0.03,
                 ),
                 Form(
                   key: _formKey,
@@ -251,8 +228,9 @@ class _AuthScreenState extends State<AuthScreen>
                         height: 10,
                       ),
                       _buildConfirmPassword(),
-                      const SizedBox(
-                        height: 10,
+                      SizedBox(
+                        height: _authMode == AuthMode.signup? mediaQuery.size.height * 0.03
+                            :mediaQuery.size.height * 0.005,
                       ),
                       TextButton(
                           onPressed: _authenticate,
@@ -262,7 +240,9 @@ class _AuthScreenState extends State<AuthScreen>
                                 )
                               : Text(
                                   _switch,
-                                  style: const TextStyle(color: Colors.white),
+                                  style: const TextStyle(color: Colors.white, 
+                                  fontFamily: "Permanent Marker"
+                                  ),
                                 ),
                           style: TextButton.styleFrom(
                               backgroundColor:
@@ -272,9 +252,10 @@ class _AuthScreenState extends State<AuthScreen>
                               fixedSize: const Size(120, 55),
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(25)))),
-                      const SizedBox(
-                        height: 10,
+                      SizedBox(
+                        height: mediaQuery.size.height * 0.002,
                       ),
+                      
                       TextButton(
                           onPressed: _switchAuthMode,
                           child: const Text(

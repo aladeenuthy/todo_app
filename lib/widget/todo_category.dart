@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:todos_app/models/category.dart';
+import '/models/category.dart';
 
 class TodoGrid extends StatelessWidget {
   final Category category;
@@ -43,7 +43,7 @@ class TodoGrid extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  category.title,
+                  category.title.length > 10 ? '${category.title.substring(0, 6)}....': category.title,
                   style: Theme.of(context).textTheme.headline6,
                 ),
                 const SizedBox(height: 3),

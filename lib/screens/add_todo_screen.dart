@@ -1,35 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:todos_app/models/http_exeption.dart';
-import 'package:todos_app/providers/todos.dart';
-import 'package:todos_app/widget/input_form.dart';
-import 'package:todos_app/helpers/helper.dart';
+import '/models/http_exeption.dart';
+import '/providers/auth.dart';
+import '/providers/todos.dart';
+import '/widget/input_form.dart';
+import '/helpers/helper.dart';
 
 class AddTodoScreen extends StatelessWidget {
   static const routeName = "/add-todo";
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  TimeOfDay? pickedTime;
 
-  void _saveStartTime(TimeOfDay startTime) {
-    pickedTime = startTime;
-  }
-
-
+  AddTodoScreen({Key? key}) : super(key: key);
 
   void _submitTodoData(BuildContext context, String catId) async {
     if (_titleController.text.isNotEmpty &&
-        _descriptionController.text.isNotEmpty &&
-        pickedTime != null) {
+        _descriptionController.text.isNotEmpty) {
       final isOnline = await Helper.hasNetwork();
       if (isOnline) {
         try {
           Helper.showLoadingDialog(context);
+          final authToken = await Provider.of<Auth>(context, listen: false).getOrRefreshToken();
           await Provider.of<Todoss>(context, listen: false).addTodo(
               catId,
               _titleController.text,
               _descriptionController.text,
-              pickedTime as TimeOfDay);
+              authToken
+              );
           Navigator.of(context).pop();
           Navigator.of(context).pop();
         } on HttpException catch (error) {
@@ -47,7 +44,7 @@ class AddTodoScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final catId = ModalRoute.of(context)!.settings.arguments as String;
+    final catData = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: PreferredSize(
@@ -72,7 +69,7 @@ class AddTodoScreen extends StatelessWidget {
             actions: [
               IconButton(
                   onPressed: () {
-                    _submitTodoData(context, catId);
+                    _submitTodoData(context, catData['catId']);
                   },
                   icon: const Icon(
                     Icons.check,
@@ -86,7 +83,7 @@ class AddTodoScreen extends StatelessWidget {
       body: InputForm(
         titleController: _titleController,
         descriptionController: _descriptionController,
-        saveStartTime: _saveStartTime,
+        catColor: catData['catColor']
       ),
     );
   }

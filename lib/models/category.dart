@@ -1,4 +1,4 @@
-import 'package:todos_app/models/todo.dart';
+import '/models/todo.dart';
 
 class Category {
   String id;

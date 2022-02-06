@@ -10,7 +10,7 @@ class DBHelper {
       await db.execute(
           'CREATE TABLE categories(id TEXT PRIMARY KEY, title TEXT, colorNumber INTEGER)');
       return db.execute(
-          'CREATE TABLE todos(id TEXT PRIMARY KEY, title TEXT, description TEXT, startTime TEXT, completed INTEGER, categoryId TEXT)');
+          'CREATE TABLE todos(id TEXT PRIMARY KEY, title TEXT, description TEXT,completed INTEGER, categoryId TEXT)');
     }, version: 1);
   }
 
@@ -22,7 +22,6 @@ class DBHelper {
 
   static Future<void> removeCategory(String catId) async {
     final db = await DBHelper.database();
-    
     await db.delete("categories", where: "id = ?", whereArgs: [catId]);
     await db.delete('todos', where: "categoryId = ?", whereArgs: [catId]);
   }
@@ -36,14 +35,12 @@ class DBHelper {
   static Future<void> removeTodo(String todoId) async {
     final db = await DBHelper.database();
     await db.delete("todos", where: "id = ?", whereArgs: [todoId]);
-    
   }
 
   static Future<void> updateTodo(Map<String, dynamic> todoData) async {
     final db = await DBHelper.database();
     await db.update("todos", todoData,
         where: "id = ?", whereArgs: [todoData['id']]);
-    
   }
 
   static Future<List<Map<String, dynamic>>> getCategories() async {
@@ -57,12 +54,7 @@ class DBHelper {
   }
 
   static Future<void> wipeData() async {
-    final db = await DBHelper.database();
-    await db.execute("DROP TABLE IF EXISTS categories");
-    await db.execute("DROP TABLE IF EXISTS todos");
-    await db.execute(
-        'CREATE TABLE categories(id TEXT PRIMARY KEY, title TEXT, colorNumber INTEGER)');
-    await db.execute(
-        'CREATE TABLE todos(id TEXT PRIMARY KEY, title TEXT, description TEXT, startTime TEXT, completed INTEGER, categoryId TEXT)');
+    final dbPath = await sql.getDatabasesPath();
+    return sql.deleteDatabase(path.join(dbPath, "todos.db"));
   }
 }

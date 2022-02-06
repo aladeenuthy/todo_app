@@ -1,20 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:todos_app/providers/auth.dart';
-import 'package:todos_app/widget/todo_categories.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '/providers/auth.dart';
+import '/widget/todo_categories.dart';
+import '/providers/todos.dart';
 
-class CategoriesListScreen extends StatelessWidget {
+class CategoriesListScreen extends StatefulWidget {
   const CategoriesListScreen({Key? key}) : super(key: key);
 
   @override
+  State<CategoriesListScreen> createState() => _CategoriesListScreenState();
+}
+
+class _CategoriesListScreenState extends State<CategoriesListScreen> {
+  var isLoading = false;
+  @override
+  void initState() {
+    Future.delayed(Duration.zero, () async {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.get("isFetched") == null) {
+        setState(() {
+          isLoading = true;
+        });
+        final authToken =
+            await Provider.of<Auth>(context, listen: false).getOrRefreshToken();
+        await Provider.of<Todoss>(context, listen: false)
+            .fetchAndsetFromSever(authToken);
+        setState(() {
+          isLoading = false;
+        });
+        prefs.setBool("isFetched", true);
+      }
+    });
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
     return Scaffold(
       body: SafeArea(
         child: Scrollbar(
           child: SingleChildScrollView(
             child: Column(
               children: [
-                const SizedBox(height: 110),
+                SizedBox(height: mediaQuery.size.height * 0.19),
                 Container(
                   margin: const EdgeInsets.only(left: 40),
                   width: double.infinity,
@@ -26,9 +56,17 @@ class CategoriesListScreen extends StatelessWidget {
                         style: Theme.of(context).textTheme.headline5,
                       ),
                       const SizedBox(
-                        height: 20,
+                        height: 15,
                       ),
-                      const TodoCategories()
+                      isLoading
+                          ? const Padding(
+                              padding: EdgeInsets.only(top: 200),
+                              child: Center(
+                                  child: CircularProgressIndicator(
+                                color: Colors.grey,
+                              )),
+                            )
+                          : const TodoCategories()
                     ],
                   ),
                 )
@@ -39,7 +77,7 @@ class CategoriesListScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.logout),
-        onPressed: () {
+        onPressed: () async {
           Provider.of<Auth>(context, listen: false).logout();
         },
       ),
