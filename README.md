@@ -1,4 +1,7 @@
-
+simple todo app made with:
+-Firebase auth
+-Firebase realtime database
+-sqlite database
 
 ![Alt text](assets/screenshots/signUp.png?raw=true "Login screen")
 //
