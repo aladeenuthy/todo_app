@@ -1,5 +1,5 @@
 simple todo app made with:
--Firebase auth
+-Firebase auth \n
 -Firebase realtime database
 -sqlite database
 
