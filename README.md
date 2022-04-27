@@ -1,4 +1,4 @@
-simple todo app made with:
+simple todo app made with: <br />
 -Firebase auth <br />
 -Firebase realtime database <br />
 -sqlite database
